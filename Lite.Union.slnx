@@ -1,0 +1,20 @@
+<Solution>
+  <Folder Name="/sources/">
+    <Project Path="sources/Lite.Union/Lite.Union.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Lite.Union.Test/Lite.Union.Test.csproj" />
+    <Project Path="tests/Lite.Union.GeneratorTest/Lite.Union.GeneratorTest.csproj" />
+    <Project Path="tests/PlatformTest/Ns20/Lite.Union.Test.Ns20.csproj" />
+    <Project Path="tests/PlatformTest/Ns21/Lite.Union.Test.Ns21.csproj" />
+  </Folder>
+  <Folder Name="/benchmarks/">
+    <Project Path="benchmarks/Benchmark.Strict/Benchmark.Strict.csproj" />
+    <Project Path="benchmarks/Benchmark.Strict.Gen/Benchmark.Strict.Gen.csproj" />
+    <Project Path="benchmarks/Benchmark.Net11/Benchmark.Net11.csproj" />
+  </Folder>
+  <Folder Name="/docs/samples/">
+    <Project Path="docs/samples/Sample/Sample.csproj" />
+    <Project Path="docs/samples/Sample11/Sample11.csproj" />
+  </Folder>
+</Solution>

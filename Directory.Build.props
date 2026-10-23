@@ -1,0 +1,31 @@
+<Project>
+  <!-- Shared metadata. NuGet packaging is opt-IN: nothing is packed unless a project sets
+       <IsPackable>true</IsPackable> (so samples, tests and benchmarks never reach NuGet). -->
+  <PropertyGroup>
+    <Authors>Serafim Prozorov</Authors>
+    <Company>alt-stack-lite-dotnet</Company>
+    <Product>Lite.Union</Product>
+    <Copyright>Copyright (c) 2026 Serafim Prozorov</Copyright>
+
+    <!-- Default version for a local `dotnet pack`. CI overrides it with -p:Version taken from the git tag. -->
+    <Version>1.0.0-rc.1</Version>
+
+    <PackageProjectUrl>https://github.com/alt-stack-lite-dotnet/lite-union</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/alt-stack-lite-dotnet/lite-union.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
+
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <!-- Bundle the README into every package that opts in to packing. -->
+  <ItemGroup Condition="'$(IsPackable)' == 'true'">
+    <None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" PackagePath="\" Visible="false" />
+  </ItemGroup>
+</Project>

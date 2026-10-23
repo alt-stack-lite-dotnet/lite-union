@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Unions compiled for netstandard2.0: the generated code must also load and run when a .NET 8+ test host executes it. -->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>12</LangVersion>
+    <Nullable>enable</Nullable>
+    <DefineConstants>$(DefineConstants);NS20</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\Shared\PlatformChecks.cs" />
+    <ProjectReference Include="..\..\..\sources\Lite.Union\Lite.Union.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+</Project>

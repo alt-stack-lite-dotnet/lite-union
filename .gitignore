@@ -1,0 +1,16 @@
+bin/
+obj/
+out/
+*.nupkg
+*.snupkg
+/packages/
+BenchmarkDotNet.Artifacts/
+riderModule.iml
+/_ReSharper.Caches/
+.idea/
+.vs/
+
+# Raw benchmark output stays local; the generated adapters (benchmarks/*/Generated) are committed so that a fresh clone builds.
+benchmarks/**/results/
+benchmarks/**/selfcheck.csv
+benchmarks/**/smoke.log

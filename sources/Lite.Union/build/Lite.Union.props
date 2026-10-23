@@ -1,0 +1,10 @@
+<Project>
+  <!-- Makes the project-wide defaults visible to the source generator. Set them in the project file:
+         <LiteUnionLayout>Overlap | Flat | Boxed</LiteUnionLayout>
+         <LiteUnionFallback>Field | Boxed</LiteUnionFallback>
+       What an attribute says on a type always wins over these. -->
+  <ItemGroup>
+    <CompilerVisibleProperty Include="LiteUnionLayout" />
+    <CompilerVisibleProperty Include="LiteUnionFallback" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    Part B of the comparison: .NET 11, where the language's own union exists. BenchmarkDotNet cannot start a separate
+    process for net11.0 yet, so this part runs in the benchmark process (BENCH_INPROCESS). Its numbers are compared only
+    with each other, in the same run. The code is shared with Benchmark.Strict (part A).
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net11.0</TargetFramework>
+    <LangVersion>preview</LangVersion>
+    <Nullable>enable</Nullable>
+    <Optimize>true</Optimize>
+    <ConcurrentGarbageCollection>false</ConcurrentGarbageCollection>
+    <ServerGarbageCollector>false</ServerGarbageCollector>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+    <CompilerGeneratedFilesOutputPath>obj/gen</CompilerGeneratedFilesOutputPath>
+    <DefineConstants>$(DefineConstants);BENCH_INPROCESS</DefineConstants>
+    <NoWarn>$(NoWarn);SU0007;CS8618;CS0649;CS0169;CS1591;CA1822;CS8509</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" Version="0.15.8" />
+    <PackageReference Include="NonboxingUnion" Version="0.0.2" />
+    <PackageReference Include="StructUnion" Version="0.6.0" PrivateAssets="all" />
+    <PackageReference Include="SumSharp" Version="2.6.0" />
+    <ProjectReference Include="..\..\sources\Lite.Union\Lite.Union.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\Benchmark.Strict\Sets.cs" Link="Shared\Sets.cs" />
+    <Compile Include="..\Benchmark.Strict\IAdapter.cs" Link="Shared\IAdapter.cs" />
+    <Compile Include="..\Benchmark.Strict\Checks.cs" Link="Shared\Checks.cs" />
+    <Compile Include="..\Benchmark.Strict\Workloads.cs" Link="Shared\Workloads.cs" />
+    <Compile Include="..\Benchmark.Strict\Report.cs" Link="Shared\Report.cs" />
+    <Compile Include="..\Benchmark.Strict\Program.cs" Link="Shared\Program.cs" />
+  </ItemGroup>
+</Project>

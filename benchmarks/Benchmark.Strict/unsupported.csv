@@ -1,0 +1,5 @@
+name,reason
+UnionTypes_Mixed_3,"the CLR cannot load the generated struct: an object field overlaps a non-object field (TypeLoadException)"
+UnionTypes_Mixed_8,"the CLR cannot load the generated struct: an object field overlaps a non-object field (TypeLoadException)"
+UnionTypes_Big_3,"the CLR cannot load the generated struct: an object field overlaps a non-object field (TypeLoadException)"
+UnionTypes_Big_8,"the CLR cannot load the generated struct: an object field overlaps a non-object field (TypeLoadException)"
