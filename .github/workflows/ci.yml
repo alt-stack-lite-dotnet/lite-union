@@ -1,20 +1,21 @@
-# CI: build and test on push/PR; pack and push to NuGet only for a v* tag that is on the release branch.
+# CI: build and test on every push and pull request. A push to main also packs the package and publishes it to NuGet.
 #
-# To publish:
-#   git tag v1.0.0-rc.1 && git push origin v1.0.0-rc.1
-# The package is pushed only if the tagged commit is on the release branch.
+# The version comes from <Version> in Directory.Build.props. To release, change it and push to main:
+# the package is published if that version is not on nuget.org yet, otherwise the publish step is skipped
+# (so a push that does not bump the version only builds and tests).
+#
+# Publishing uses NuGet Trusted Publishing, no long-lived key is stored:
+#   1. nuget.org -> your profile -> Trusted Publishing: add a policy
+#      (Repository Owner = alt-stack-lite-dotnet, Repository = lite-union, Workflow File = ci.yml).
+#   2. Repository secret NUGET_USER = the nuget.org profile name.
 
 name: CI
 
 on:
   push:
     branches: ["**"]
-    tags: ["v*"]
   pull_request:
     branches: ["**"]
-
-env:
-  RELEASE_BRANCH: release
 
 jobs:
   build-and-test:
@@ -49,29 +50,18 @@ jobs:
       - name: Test (generator tests)
         run: dotnet test tests/Lite.Union.GeneratorTest/Lite.Union.GeneratorTest.csproj -c Release --no-build --verbosity normal
 
-  pack:
+  publish:
     needs: build-and-test
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
       contents: read
       id-token: write   # NuGet Trusted Publishing (OIDC)
+    concurrency:
+      group: nuget-publish
+      cancel-in-progress: false   # a release that has started is not cut short by the next push
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Check tag is on release branch
-        id: check-release
-        run: |
-          TAG_COMMIT=$(git rev-list -n 1 "${{ github.ref }}")
-          git fetch origin ${{ env.RELEASE_BRANCH }} 2>/dev/null || true
-          if git merge-base --is-ancestor "$TAG_COMMIT" origin/${{ env.RELEASE_BRANCH }} 2>/dev/null; then
-            echo "on_release=true" >> $GITHUB_OUTPUT
-          else
-            echo "on_release=false" >> $GITHUB_OUTPUT
-            echo "Tag ${{ github.ref }} is not on branch ${{ env.RELEASE_BRANCH }}. NuGet push will be skipped (artifacts still built)."
-          fi
 
       # The package is built with a stable SDK: the generator targets netstandard2.0 and needs nothing newer.
       - name: Install .NET SDK
@@ -79,38 +69,59 @@ jobs:
         with:
           dotnet-version: "10.0.x"
 
-      - name: Set version from tag
+      - name: Read the version
         id: version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+        run: |
+          VERSION=$(sed -n 's:.*<Version>\(.*\)</Version>.*:\1:p' Directory.Build.props | head -1)
+          if [ -z "$VERSION" ]; then echo "No <Version> in Directory.Build.props"; exit 1; fi
+          echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Package version: $VERSION"
+
+      # A published version cannot be replaced, so a push that does not change the version has nothing to publish.
+      - name: Is this version already on nuget.org?
+        id: exists
+        run: |
+          ID=lite.union
+          VERSION=$(echo "${{ steps.version.outputs.VERSION }}" | tr 'A-Z' 'a-z')
+          CODE=$(curl -s -o /dev/null -w "%{http_code}" "https://api.nuget.org/v3-flatcontainer/$ID/$VERSION/$ID.$VERSION.nupkg")
+          if [ "$CODE" = "200" ]; then
+            echo "EXISTS=true" >> "$GITHUB_OUTPUT"
+            echo "Lite.Union $VERSION is already published; nothing to do."
+          else
+            echo "EXISTS=false" >> "$GITHUB_OUTPUT"
+            echo "Lite.Union $VERSION is new (nuget.org answered $CODE)."
+          fi
 
       - name: Pack
-        run: |
-          dotnet pack sources/Lite.Union/Lite.Union.csproj -c Release -o out \
-            -p:Version=${{ steps.version.outputs.VERSION }}
+        if: steps.exists.outputs.EXISTS == 'false'
+        run: dotnet pack sources/Lite.Union/Lite.Union.csproj -c Release -o out
 
       - name: Check package contents
+        if: steps.exists.outputs.EXISTS == 'false'
         run: |
+          ls out
           unzip -l out/*.nupkg
           unzip -l out/*.nupkg | grep -q "analyzers/dotnet/cs/Lite.Union.dll"
           unzip -l out/*.nupkg | grep -q "README.md"
+          test -f "out/Lite.Union.${{ steps.version.outputs.VERSION }}.nupkg"
 
       - name: Upload NuGet packages
+        if: steps.exists.outputs.EXISTS == 'false'
         uses: actions/upload-artifact@v4
         with:
           name: nuget-packages
           path: out/*.nupkg
 
       # Trusted Publishing: the GitHub OIDC token is exchanged for a one-hour nuget.org API key.
-      # Needs a trusted publishing policy on nuget.org and the NUGET_USER secret (nuget.org profile name).
       - name: NuGet login (OIDC -> short-lived API key)
-        if: steps.check-release.outputs.on_release == 'true'
+        if: steps.exists.outputs.EXISTS == 'false'
         uses: NuGet/login@v1
         id: nuget-login
         with:
           user: ${{ secrets.NUGET_USER }}
 
       - name: Push to NuGet
-        if: steps.check-release.outputs.on_release == 'true'
+        if: steps.exists.outputs.EXISTS == 'false'
         run: |
           for f in out/*.nupkg; do
             dotnet nuget push "$f" --api-key "${{ steps.nuget-login.outputs.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
