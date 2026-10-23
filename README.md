@@ -42,9 +42,9 @@ The package contains only an analyzer (the generator); it adds nothing to your a
 
 | What | Minimum |
 |---|---|
-| Compiler | .NET SDK 8 (verified on 8.0.426). The generator is built against Roslyn 4.8; SDK 8.0.100 was not tried separately |
+| Compiler | .NET SDK 8, 9, 10 or 11 (the generator is built against Roslyn 4.8). Verified: a project using the generator builds and runs, 10 of 10 checks, under SDK 8.0.426, 9.0.318, 10.0.401 and 11.0.100-rc.2; other patch versions were not tried |
 | Language | C# 11 (the generic attribute `[Union<...>]`) |
-| Target framework | `netstandard2.0`, `netstandard2.1`, .NET 8, 9, 10, 11 (the code is built **and run** on each of them). `net462` and `net6.0` were only built |
+| Target framework | `netstandard2.0`, `netstandard2.1`, .NET 8, 9, 10, 11 (the code is built **and run** on each of them) |
 
 **NativeAOT and trimming.** The generated code uses no reflection at run time. Verified: a `PublishAot` publish and run on Linux x64 (.NET 10), 10 of 10 checks, no `IL…` warnings; a `TrimMode=full` publish on Windows, 10 of 10. Running an AOT binary on Windows was not verified (the machine had no Windows SDK).
 
